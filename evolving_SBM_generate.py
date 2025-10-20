@@ -2,6 +2,14 @@ from scipy.stats import uniform, expon, poisson
 import numpy as np
 from TemporalNetwork import ContTempNetwork
 
+def EDEDE(inter_tau = 2, activ_tau = 2, t_start = 0, t_end = 300):
+
+    number_of_events = poisson.rvs(size = 1, mu = (t_end - t_start) / activ_tau)[0]
+    starting_times = np.sort(uniform.rvs(size=number_of_events, loc=t_start, scale=t_end - t_start))
+    ending_times = expon.rvs(size=number_of_events, scale= inter_tau)
+    ending_times = ending_times + starting_times
+    return number_of_events, starting_times, ending_times
+
 
 def make_step_block_probs(deltat1,
                           n_groups=27, n_per_group = 3,
@@ -69,10 +77,7 @@ def generate_evolving_SBM(inter_tau = 2, activ_tau = 2,
                           t_start = 0, t_end = 300,
                           basis_num_communities = 3, powers_num_communities = [3, 2, 1], list_p_within_community = [49/50] * len([27, 9, 3])):
 
-    number_of_events = poisson.rvs(size = 1, mu = (t_end - t_start) / activ_tau)[0]
-    starting_times = np.sort(uniform.rvs(size=number_of_events, loc=t_start, scale=t_end - t_start))
-    ending_times = expon.rvs(size=number_of_events, scale= inter_tau)
-    ending_times = ending_times + starting_times
+    number_of_events, starting_times, ending_times = EDEDE(inter_tau = inter_tau, activ_tau = activ_tau, t_start = t_start, t_end = t_end)
 
     source_nodes = np.random.choice(n_groups * n_per_group, number_of_events, replace=True)
     block_mod_func = make_step_block_probs(deltat1 = (t_end - t_start) / len(powers_num_communities),
